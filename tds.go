@@ -1200,18 +1200,21 @@ func connect(ctx context.Context, c *Connector, log optionalLogger, p connectPar
 		if err != nil {
 			t.done()
 			f := "Unable to get instances from Sql Server Browser on host %v: %v"
+			t.Err = fmt.Errorf(f, p.host, err.Error())
 			return nil, fmt.Errorf(f, p.host, err.Error())
 		}
 		strport, ok := instances[p.instance]["tcp"]
 		if !ok {
 			t.done()
 			f := "No instance matching '%v' returned from host '%v'"
+			t.Err = fmt.Errorf(f, p.instance, err.Error())
 			return nil, fmt.Errorf(f, p.instance, p.host)
 		}
 		p.port, err = strconv.ParseUint(strport, 0, 16)
 		if err != nil {
 			t.done()
 			f := "Invalid tcp port returned from Sql Server Browser '%v': %v"
+			t.Err = fmt.Errorf(f, strport, err.Error())
 			return nil, fmt.Errorf(f, strport, err.Error())
 		}
 	}
@@ -1221,6 +1224,7 @@ initiate_connection:
 	if err != nil {
 		t.dial()
 		t.done()
+		t.Err = err
 		return nil, err
 	}
 	t.dial()
@@ -1256,6 +1260,7 @@ initiate_connection:
 	if err != nil {
 		t.auth()
 		t.done()
+		t.Err = err
 		return nil, err
 	}
 
@@ -1263,6 +1268,7 @@ initiate_connection:
 	if err != nil {
 		t.auth()
 		t.done()
+		t.Err = err
 		return nil, err
 	}
 
@@ -1270,12 +1276,14 @@ initiate_connection:
 	if !ok {
 		t.auth()
 		t.done()
+		t.Err = err
 		return nil, fmt.Errorf("Encrypt negotiation failed")
 	}
 	encrypt = encryptBytes[0]
 	if p.encrypt && (encrypt == encryptNotSup || encrypt == encryptOff) {
 		t.auth()
 		t.done()
+		t.Err = err
 		return nil, fmt.Errorf("Server does not support encryption")
 	}
 
@@ -1286,6 +1294,7 @@ initiate_connection:
 			if err != nil {
 				t.auth()
 				t.done()
+				t.Err = err
 				return nil, fmt.Errorf("Cannot read certificate %q: %v", p.certificate, err)
 			}
 			certs := x509.NewCertPool()
@@ -1311,6 +1320,7 @@ initiate_connection:
 		if err != nil {
 			t.auth()
 			t.done()
+			t.Err = err
 			return nil, fmt.Errorf("TLS Handshake failed: %v", err)
 		}
 		if encrypt == encryptOff {
@@ -1336,6 +1346,7 @@ initiate_connection:
 		if err != nil {
 			t.auth()
 			t.done()
+			t.Err = err
 			return nil, err
 		}
 		login.OptionFlags2 |= fIntSecurity
@@ -1348,6 +1359,7 @@ initiate_connection:
 	if err != nil {
 		t.auth()
 		t.done()
+		t.Err = err
 		return nil, err
 	}
 
@@ -1363,6 +1375,7 @@ initiate_connection:
 				if err != nil {
 					t.auth()
 					t.done()
+					t.Err = err
 					return nil, err
 				}
 				if sspi_msg != nil && len(sspi_msg) > 0 {
@@ -1371,12 +1384,14 @@ initiate_connection:
 					if err != nil {
 						t.auth()
 						t.done()
+						t.Err = err
 						return nil, err
 					}
 					err = outbuf.FinishPacket()
 					if err != nil {
 						t.auth()
 						t.done()
+						t.Err = err
 						return nil, err
 					}
 					sspi_msg = nil
@@ -1387,11 +1402,13 @@ initiate_connection:
 			case error:
 				t.auth()
 				t.done()
+				t.Err = err
 				return nil, fmt.Errorf("Login error: %s", token.Error())
 			case doneStruct:
 				if token.isError() {
 					t.auth()
 					t.done()
+					t.Err = err
 					return nil, fmt.Errorf("Login error: %s", token.getError())
 				}
 				goto loginEnd
@@ -1402,6 +1419,7 @@ loginEnd:
 	t.auth()
 	if !success {
 		t.done()
+		t.Err = fmt.Errorf("Login failed")
 		return nil, fmt.Errorf("Login failed")
 	}
 	if sess.routedServer != "" {

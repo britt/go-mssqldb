@@ -16,6 +16,7 @@ type Timing struct {
 	Auth    time.Duration   `json:"auth"`
 	Total   time.Duration   `json:"total"`
 	Queries []time.Duration `json:"queries"`
+	Err     error           `json:"err"`
 }
 
 func (t *Timing) start() {
