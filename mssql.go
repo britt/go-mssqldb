@@ -59,9 +59,28 @@ func (d *Driver) OpenConnector(dsn string) (*Connector, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	t := &Timing{}
+
+	var ts []*Timing
+	i, ok := Timings.Load(dsn)
+	if !ok {
+		ts = []*Timing{t}
+	} else {
+		ts, ok = i.([]*Timing)
+		if !ok {
+			logrus.Error("mssql: Timings was not a slice reinitializing")
+			ts = []*Timing{t}
+		}
+		ts = append(ts, t)
+
+	}
+	Timings.Store(params, ts)
+
 	return &Connector{
 		params: params,
 		driver: d,
+		Timer:  t,
 	}, nil
 }
 
