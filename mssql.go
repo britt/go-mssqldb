@@ -63,14 +63,11 @@ func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 	timingMu.Lock()
 	ts, ok := Timings[dsn]
 	if !ok {
-		fmt.Println("Timings not loaded initializing")
 		ts = []*Timing{t}
 	} else {
 		ts = append(ts, t)
-		fmt.Println("Adding to timings", len(ts))
 	}
 	Timings[dsn] = ts
-	fmt.Println("Timings stored", Timings[dsn])
 	timingMu.Unlock()
 
 	return &Connector{
@@ -105,14 +102,11 @@ func NewConnector(dsn string) (*Connector, error) {
 	timingMu.Lock()
 	ts, ok := Timings[dsn]
 	if !ok {
-		fmt.Println("Timings not loaded initializing")
 		ts = []*Timing{t}
 	} else {
 		ts = append(ts, t)
-		fmt.Println("Adding to timings", len(ts))
 	}
 	Timings[dsn] = ts
-	fmt.Println("Timings stored", Timings[dsn])
 	timingMu.Unlock()
 
 	c := &Connector{
