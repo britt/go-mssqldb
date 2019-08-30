@@ -84,9 +84,22 @@ func NewConnector(dsn string) (*Connector, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	t := &Timing{}
+
+	ts, ok := Timings.Load(dsn)
+	if !ok {
+		ts = []*Timing{t}
+	} else {
+		ts = append(ts, t)
+
+	}
+	Timings.Store(params, ts)
+
 	c := &Connector{
 		params: params,
 		driver: driverInstanceNoProcess,
+		Timer:  t,
 	}
 	return c, nil
 }
@@ -126,6 +139,7 @@ type Connector struct {
 	// Dialer sets a custom dialer for all network operations.
 	// If Dialer is not set, normal net dialers are used.
 	Dialer Dialer
+	Timer  *Timing
 }
 
 type Dialer interface {
