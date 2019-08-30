@@ -1184,7 +1184,6 @@ func dialConnection(ctx context.Context, c *Connector, p connectParams) (conn ne
 func connect(ctx context.Context, c *Connector, log optionalLogger, p connectParams) (res *tdsSession, err error) {
 	t := c.Timer
 	t.start()
-	defer t.done()
 
 	dialCtx := ctx
 	if p.dial_timeout > 0 {
@@ -1199,16 +1198,19 @@ func connect(ctx context.Context, c *Connector, log optionalLogger, p connectPar
 		d := c.getDialer(&p)
 		instances, err := getInstances(dialCtx, d, p.host)
 		if err != nil {
+			t.done()
 			f := "Unable to get instances from Sql Server Browser on host %v: %v"
 			return nil, fmt.Errorf(f, p.host, err.Error())
 		}
 		strport, ok := instances[p.instance]["tcp"]
 		if !ok {
+			t.done()
 			f := "No instance matching '%v' returned from host '%v'"
 			return nil, fmt.Errorf(f, p.instance, p.host)
 		}
 		p.port, err = strconv.ParseUint(strport, 0, 16)
 		if err != nil {
+			t.done()
 			f := "Invalid tcp port returned from Sql Server Browser '%v': %v"
 			return nil, fmt.Errorf(f, strport, err.Error())
 		}
@@ -1218,6 +1220,7 @@ initiate_connection:
 	conn, err := dialConnection(dialCtx, c, p)
 	if err != nil {
 		t.dial()
+		t.done()
 		return nil, err
 	}
 	t.dial()
@@ -1252,23 +1255,27 @@ initiate_connection:
 	err = writePrelogin(outbuf, fields)
 	if err != nil {
 		t.auth()
+		t.done()
 		return nil, err
 	}
 
 	fields, err = readPrelogin(outbuf)
 	if err != nil {
 		t.auth()
+		t.done()
 		return nil, err
 	}
 
 	encryptBytes, ok := fields[preloginENCRYPTION]
 	if !ok {
 		t.auth()
+		t.done()
 		return nil, fmt.Errorf("Encrypt negotiation failed")
 	}
 	encrypt = encryptBytes[0]
 	if p.encrypt && (encrypt == encryptNotSup || encrypt == encryptOff) {
 		t.auth()
+		t.done()
 		return nil, fmt.Errorf("Server does not support encryption")
 	}
 
@@ -1278,6 +1285,7 @@ initiate_connection:
 			pem, err := ioutil.ReadFile(p.certificate)
 			if err != nil {
 				t.auth()
+				t.done()
 				return nil, fmt.Errorf("Cannot read certificate %q: %v", p.certificate, err)
 			}
 			certs := x509.NewCertPool()
@@ -1302,6 +1310,7 @@ initiate_connection:
 		outbuf.transport = tlsConn
 		if err != nil {
 			t.auth()
+			t.done()
 			return nil, fmt.Errorf("TLS Handshake failed: %v", err)
 		}
 		if encrypt == encryptOff {
@@ -1326,6 +1335,7 @@ initiate_connection:
 		login.SSPI, err = auth.InitialBytes()
 		if err != nil {
 			t.auth()
+			t.done()
 			return nil, err
 		}
 		login.OptionFlags2 |= fIntSecurity
@@ -1337,6 +1347,7 @@ initiate_connection:
 	err = sendLogin(outbuf, login)
 	if err != nil {
 		t.auth()
+		t.done()
 		return nil, err
 	}
 
@@ -1351,6 +1362,7 @@ initiate_connection:
 				sspi_msg, err := auth.NextBytes(token)
 				if err != nil {
 					t.auth()
+					t.done()
 					return nil, err
 				}
 				if sspi_msg != nil && len(sspi_msg) > 0 {
@@ -1358,11 +1370,13 @@ initiate_connection:
 					_, err = outbuf.Write(sspi_msg)
 					if err != nil {
 						t.auth()
+						t.done()
 						return nil, err
 					}
 					err = outbuf.FinishPacket()
 					if err != nil {
 						t.auth()
+						t.done()
 						return nil, err
 					}
 					sspi_msg = nil
@@ -1372,10 +1386,12 @@ initiate_connection:
 				sess.loginAck = token
 			case error:
 				t.auth()
+				t.done()
 				return nil, fmt.Errorf("Login error: %s", token.Error())
 			case doneStruct:
 				if token.isError() {
 					t.auth()
+					t.done()
 					return nil, fmt.Errorf("Login error: %s", token.getError())
 				}
 				goto loginEnd
@@ -1385,6 +1401,7 @@ initiate_connection:
 loginEnd:
 	t.auth()
 	if !success {
+		t.done()
 		return nil, fmt.Errorf("Login failed")
 	}
 	if sess.routedServer != "" {
@@ -1396,5 +1413,6 @@ loginEnd:
 		}
 		goto initiate_connection
 	}
+	t.done()
 	return &sess, nil
 }
