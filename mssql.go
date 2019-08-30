@@ -54,7 +54,7 @@ type Driver struct {
 }
 
 // OpenConnector opens a new connector. Useful to dial with a context.
-func (d *Driver) OpenConnector(dsn string) (*Connector, error) {
+func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 	fmt.Println("OpenConnector", dsn)
 	params, err := parseConnectParams(dsn)
 	if err != nil {
