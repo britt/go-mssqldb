@@ -1,14 +1,14 @@
 # A pure Go MSSQL driver for Go's database/sql package
 
-[![GoDoc](https://godoc.org/github.com/denisenkom/go-mssqldb?status.svg)](http://godoc.org/github.com/denisenkom/go-mssqldb)
-[![Build status](https://ci.appveyor.com/api/projects/status/jrln8cs62wj9i0a2?svg=true)](https://ci.appveyor.com/project/denisenkom/go-mssqldb)
-[![codecov](https://codecov.io/gh/denisenkom/go-mssqldb/branch/master/graph/badge.svg)](https://codecov.io/gh/denisenkom/go-mssqldb)
+[![GoDoc](https://godoc.org/github.com/britt/go-mssqldb?status.svg)](http://godoc.org/github.com/britt/go-mssqldb)
+[![Build status](https://ci.appveyor.com/api/projects/status/jrln8cs62wj9i0a2?svg=true)](https://ci.appveyor.com/project/britt/go-mssqldb)
+[![codecov](https://codecov.io/gh/britt/go-mssqldb/branch/master/graph/badge.svg)](https://codecov.io/gh/britt/go-mssqldb)
 
 ## Install
 
 Requires Go 1.8 or above.
 
-Install with `go get github.com/denisenkom/go-mssqldb` .
+Install with `go get github.com/britt/go-mssqldb` .
 
 ## Connection Parameters and DSN
 
@@ -37,7 +37,7 @@ Other supported formats are listed below.
 ### Less common parameters:
 
 * `keepAlive` - in seconds; 0 to disable (default is 30)
-* `failoverpartner` - host or host\instance (default is no partner). 
+* `failoverpartner` - host or host\instance (default is no partner).
 * `failoverport` - used only when there is no instance in failoverpartner (default 1433)
 * `packet size` - in bytes; 512 to 32767 (default is 4096)
   * Encrypted connections have a maximum packet size of 16383 bytes
@@ -89,13 +89,13 @@ Other supported formats are listed below.
 
 2. ADO: `key=value` pairs separated by `;`. Values may not contain `;`, leading and trailing whitespace is ignored.
      Examples:
-	
+
   * `server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`
   * `server=localhost;user id=sa;database=master;app name=MyAppName`
 
 3. ODBC: Prefix with `odbc`, `key=value` pairs separated by `;`. Allow `;` by wrapping
     values in `{}`. Examples:
-	
+
   * `odbc:server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`
   * `odbc:server=localhost;user id=sa;database=master;app name=MyAppName`
   * `odbc:server=localhost;user id=sa;password={foo;bar}` // Value marked with `{}`, password is "foo;bar"
@@ -233,9 +233,9 @@ are supported:
 	or add a `select ID = convert(bigint, SCOPE_IDENTITY());` to the end of your
 	query (ref [SCOPE_IDENTITY](https://docs.microsoft.com/en-us/sql/t-sql/functions/scope-identity-transact-sql)).
 	This will ensure you are getting the correct ID and will prevent a network round trip.
- * [NewConnector](https://godoc.org/github.com/denisenkom/go-mssqldb#NewConnector)
+ * [NewConnector](https://godoc.org/github.com/britt/go-mssqldb#NewConnector)
     may be used with [OpenDB](https://golang.org/pkg/database/sql/#OpenDB).
- * [Connector.SessionInitSQL](https://godoc.org/github.com/denisenkom/go-mssqldb#Connector.SessionInitSQL)
+ * [Connector.SessionInitSQL](https://godoc.org/github.com/britt/go-mssqldb#Connector.SessionInitSQL)
 	may be set to set any driver specific session settings after the session
 	has been reset. If empty the session will still be reset but use the database
 	defaults in Go1.10+.
@@ -276,7 +276,7 @@ will be loosly parsed and an attempt to extract identifiers using one of
 * :nnn
 * $nnn
 
-will be used. This is not recommended with SQL Server. 
+will be used. This is not recommended with SQL Server.
 There is at least one existing `won't fix` issue with the query parsing.
 
 Use the native "@Name" parameters instead with the "sqlserver" driver name.
