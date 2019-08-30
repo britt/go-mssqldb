@@ -55,6 +55,7 @@ type Driver struct {
 
 // OpenConnector opens a new connector. Useful to dial with a context.
 func (d *Driver) OpenConnector(dsn string) (*Connector, error) {
+	fmt.Println("OpenConnector", dsn)
 	params, err := parseConnectParams(dsn)
 	if err != nil {
 		return nil, err
@@ -100,6 +101,8 @@ func (d *Driver) SetLogger(logger Logger) {
 // NewConnector creates a new connector from a DSN.
 // The returned connector may be used with sql.OpenDB.
 func NewConnector(dsn string) (*Connector, error) {
+	fmt.Println("NewConnector", dsn)
+
 	params, err := parseConnectParams(dsn)
 	if err != nil {
 		return nil, err
