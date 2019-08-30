@@ -48,6 +48,7 @@ func (t *Timing) TimeQuery(q func() error) error {
 	qStart := time.Now()
 	err := q()
 	t.Queries = append(t.Queries, time.Since(qStart))
+	t.Err = err
 	return err
 }
 
