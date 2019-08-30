@@ -61,13 +61,7 @@ func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 
 	t := &Timing{}
 	timingMu.Lock()
-	ts, ok := Timings[dsn]
-	if !ok {
-		ts = []*Timing{t}
-	} else {
-		ts = append(ts, t)
-	}
-	Timings[dsn] = ts
+	Timings[dsn] = t
 	timingMu.Unlock()
 
 	return &Connector{
@@ -100,13 +94,7 @@ func NewConnector(dsn string) (*Connector, error) {
 
 	t := &Timing{}
 	timingMu.Lock()
-	ts, ok := Timings[dsn]
-	if !ok {
-		ts = []*Timing{t}
-	} else {
-		ts = append(ts, t)
-	}
-	Timings[dsn] = ts
+	Timings[dsn] = t
 	timingMu.Unlock()
 
 	c := &Connector{

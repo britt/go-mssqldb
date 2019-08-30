@@ -9,10 +9,9 @@ import (
 // Timings is a synchronized map of timing measurments keyed by connectParams
 var timingMu sync.Mutex
 
-// TODO: make not a slice
-var Timings = make(map[string][]*Timing)
+var Timings = make(map[string]*Timing)
 
-func GetTiming(key string) []*Timing {
+func GetTiming(key string) *Timing {
 	timingMu.Lock()
 	ts := Timings[key]
 	timingMu.Unlock()
