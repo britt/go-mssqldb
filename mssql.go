@@ -16,7 +16,6 @@ import (
 	"unicode"
 
 	"github.com/britt/go-mssqldb/internal/querytext"
-	"github.com/sirupsen/logrus"
 )
 
 // ReturnStatus may be used to return the return value from a proc.
@@ -61,24 +60,18 @@ func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 	}
 
 	t := &Timing{}
-
-	var ts []*Timing
-	i, ok := Timings.Load(params)
+	timingMu.Lock()
+	ts, ok := Timings[dsn]
 	if !ok {
 		fmt.Println("Timings not loaded initializing")
 		ts = []*Timing{t}
 	} else {
-		ts, ok = i.([]*Timing)
-		if !ok {
-			fmt.Println("mssql: Timings was not a slice reinitializing")
-			ts = []*Timing{t}
-		}
 		ts = append(ts, t)
 		fmt.Println("Adding to timings", len(ts))
 	}
-	Timings.Store(params, ts)
-	i, ok = Timings.Load(params)
-	fmt.Println("Timings stored", ok, i)
+	Timings[dsn] = ts
+	fmt.Println("Timings stored", Timings[dsn])
+	timingMu.Unlock()
 
 	return &Connector{
 		params: params,
@@ -103,29 +96,24 @@ func (d *Driver) SetLogger(logger Logger) {
 // NewConnector creates a new connector from a DSN.
 // The returned connector may be used with sql.OpenDB.
 func NewConnector(dsn string) (*Connector, error) {
-	fmt.Println("NewConnector", dsn)
-
 	params, err := parseConnectParams(dsn)
 	if err != nil {
 		return nil, err
 	}
 
 	t := &Timing{}
-
-	var ts []*Timing
-	i, ok := Timings.Load(dsn)
+	timingMu.Lock()
+	ts, ok := Timings[dsn]
 	if !ok {
+		fmt.Println("Timings not loaded initializing")
 		ts = []*Timing{t}
 	} else {
-		ts, ok = i.([]*Timing)
-		if !ok {
-			logrus.Error("mssql: Timings was not a slice reinitializing")
-			ts = []*Timing{t}
-		}
 		ts = append(ts, t)
-
+		fmt.Println("Adding to timings", len(ts))
 	}
-	Timings.Store(params, ts)
+	Timings[dsn] = ts
+	fmt.Println("Timings stored", Timings[dsn])
+	timingMu.Unlock()
 
 	c := &Connector{
 		params: params,

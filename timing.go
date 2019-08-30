@@ -7,7 +7,8 @@ import (
 )
 
 // Timings is a synchronized map of timing measurments keyed by connectParams
-var Timings sync.Map
+var timingMu sync.Mutex
+var Timings = make(map[string][]*Timing)
 
 // Timing is a record of the timing of various driver lifecycle events
 type Timing struct {
