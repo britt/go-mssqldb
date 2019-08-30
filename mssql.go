@@ -77,6 +77,8 @@ func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 		fmt.Println("Adding to timings", len(ts))
 	}
 	Timings.Store(params, ts)
+	i, ok = Timings.Load(dsn)
+	fmt.Println("Timings stored", ok, i)
 
 	return &Connector{
 		params: params,
