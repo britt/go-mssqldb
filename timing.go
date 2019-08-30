@@ -18,10 +18,6 @@ type Timing struct {
 	Queries []time.Duration `json:"queries"`
 }
 
-func StartTiming() *Timing {
-	return &timing{Start: time.Now()}
-}
-
 func (t *Timing) start() {
 	t.Start = time.Now()
 }

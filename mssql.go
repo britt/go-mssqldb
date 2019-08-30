@@ -16,6 +16,7 @@ import (
 	"unicode"
 
 	"github.com/britt/go-mssqldb/internal/querytext"
+	"github.com/sirupsen/logrus"
 )
 
 // ReturnStatus may be used to return the return value from a proc.
@@ -87,10 +88,16 @@ func NewConnector(dsn string) (*Connector, error) {
 
 	t := &Timing{}
 
-	ts, ok := Timings.Load(dsn)
+	var ts []*Timing
+	i, ok := Timings.Load(dsn)
 	if !ok {
 		ts = []*Timing{t}
 	} else {
+		ts, ok = i.([]*Timing)
+		if !ok {
+			logrus.Error("mssql: Timings was not a slice reinitializing")
+			ts = []*Timing{t}
+		}
 		ts = append(ts, t)
 
 	}

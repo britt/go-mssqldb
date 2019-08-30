@@ -1182,10 +1182,7 @@ func dialConnection(ctx context.Context, c *Connector, p connectParams) (conn ne
 }
 
 func connect(ctx context.Context, c *Connector, log optionalLogger, p connectParams) (res *tdsSession, err error) {
-	t, ok := Timings.Load(p)
-	if !ok {
-		logrus.Error("mssql: unable to load timings")
-	}
+	t := c.Timer
 	t.start()
 	defer t.done()
 
