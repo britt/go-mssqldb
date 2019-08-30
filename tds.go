@@ -916,6 +916,10 @@ func splitConnectionStringURL(dsn string) (map[string]string, error) {
 	return res, nil
 }
 
+func ParseConnectParams(dsn string) (connectParams, error) {
+	return parseConnectParams(dsn)
+}
+
 func parseConnectParams(dsn string) (connectParams, error) {
 	var p connectParams
 
