@@ -63,7 +63,7 @@ func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 	t := &Timing{}
 
 	var ts []*Timing
-	i, ok := Timings.Load(dsn)
+	i, ok := Timings.Load(params)
 	if !ok {
 		fmt.Println("Timings not loaded initializing")
 		ts = []*Timing{t}
@@ -77,7 +77,7 @@ func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 		fmt.Println("Adding to timings", len(ts))
 	}
 	Timings.Store(params, ts)
-	i, ok = Timings.Load(dsn)
+	i, ok = Timings.Load(params)
 	fmt.Println("Timings stored", ok, i)
 
 	return &Connector{
